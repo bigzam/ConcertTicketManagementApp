@@ -2,7 +2,13 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/ConcertTicketManagement/bin
-/ConcertTicketManagement/obj
+/ConcertTicketManagement/bin/*
+/ConcertTicketManagement/obj/*
 /.vs
 /ConcertTicketManagement/ConcertTicketManagement.csproj.user
+/ConcertTicketManagement.Application/bin/*
+/ConcertTicketManagement.Application/obj/*
+/ConcertTicketManagement.Repositories/bin
+/ConcertTicketManagement.Repositories/obj
+/EventsContracts/bin
+/EventsContracts/obj

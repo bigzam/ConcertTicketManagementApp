@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ConcertTicketManagement.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/v1/tickets")]
     public class TicketsController : ControllerBase
     {
         private readonly ILogger<EventsController> _logger;
@@ -20,8 +20,8 @@ namespace ConcertTicketManagement.Controllers
         /// This API retrieves available tickets
         /// </remarks>
         /// <returns>Available tickets.</returns>
-        [HttpGet(Name = "ViewTickets")]
-        public async Task<IActionResult> ViewTicketsAsync()
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableTicketsAsync()
         {
             await Task.Yield();
             return Ok();
