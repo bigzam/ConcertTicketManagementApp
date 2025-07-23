@@ -1,6 +1,8 @@
 ﻿
 using ConcertTicketManagement.Contracts.Events.Models;
 using ConcertTicketManagement.Contracts.Events.Requests;
+using ConcertTicketManagement.Contracts.Tickets.Models;
+using ConcertTicketManagement.Contracts.Tickets.Requests;
 
 namespace ConcertTicketManagement.Application.Events.Services
 {
@@ -34,12 +36,10 @@ namespace ConcertTicketManagement.Application.Events.Services
         Task<Event?> UpdateAsync(Event @event, CancellationToken token);
 
         /// <summary>
-        /// Gets Event details.
+        /// Sets Event tickets.
         /// </summary>
-        /// <remarks>
-        /// This API returns Event details - date, venue, description.
-        /// </remarks>
-        /// <returns>Event if found. Null otherwise.</returns>
-        Task<Event?> GetEventDetailsAsync(Guid id, CancellationToken token);
+        /// <param name="tickets">Collection of tickets.</param>
+        /// <returns>True if tickets created updated succesfully.</returns>
+        Task<bool> SetTicketsAsync(IEnumerable<CreateTicketsRequest> ticketsRequest, Guid eventId, CancellationToken token);
     }
 }

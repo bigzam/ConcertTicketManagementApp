@@ -34,6 +34,5 @@ namespace ConcertTicketManagement.Repositories.Events
         /// <param name="token">Cancellation token.</param>
         /// <returns>Collection of all Events.</returns>
         Task<IEnumerable<Event>> GetAllAsync(CancellationToken token);
-
     }
 }

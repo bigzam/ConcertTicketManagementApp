@@ -1,7 +1,7 @@
 using ConcertTicketManagement.Api.Mappings.Events;
 using ConcertTicketManagement.Application.Events.Services;
 using ConcertTicketManagement.Contracts.Events.Requests;
-using ConcertTicketManagement.Contracts.Events.Responses;
+using ConcertTicketManagement.Contracts.Tickets.Requests;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -31,10 +31,11 @@ namespace ConcertTicketManagement.Controllers
                         [FromRoute] string id,
                         CancellationToken token = default)
         {
+            // This should be done by a separate validator
             if (!Guid.TryParse(id, out var eventId))
             {
 
-                return BadRequest("Invalid Event Id format. Evnt Id should be a valid Guid");
+                return BadRequest("Invalid Event Id format. Event Id should be a valid Guid.");
             }
 
             var @event = await _eventService.GetByIdAsync(eventId, token);
@@ -104,32 +105,79 @@ namespace ConcertTicketManagement.Controllers
         /// This API updates an Event.
         /// </remarks>
         /// <returns>Updated event object.</returns>
-        [HttpPut("{id:guid}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEventAsync(
-                        [FromRoute] Guid id,
+                        [FromRoute] string id,
                         [FromBody] UpdateEventRequest eventRequest,
                         CancellationToken token = default)
         {
             // This should be done by a separate validator
             if (!TimeOnly.TryParse(eventRequest.EventTime, out _))
             {
-                return BadRequest("eventTime is not a valid time. ");
+                return BadRequest("eventTime is not a valid time. Valid time format: hh:mm");
             }
 
             if(!DateOnly.TryParse(eventRequest.EventDate, out _))
             {
-                return BadRequest("eventDate is not a valid date. Use YYYY-MM-DD format");
+                return BadRequest("eventDate is not a valid date. Valid date format: YYYY-MM-DD");
             }
 
-            var @event = eventRequest.MapToEvent(id);
-            var updatedMovie = await _eventService.UpdateAsync(@event, token);
-            if (updatedMovie is null)
+            if (!Guid.TryParse(id, out var eventId))
+            {
+
+                return BadRequest("Invalid Event Id format. Event Id should be a valid Guid.");
+            }
+
+            var @event = eventRequest.MapToEvent(eventId);
+            var updatedEvent = await _eventService.UpdateAsync(@event, token);
+
+            if (updatedEvent is null)
             {
                 return NotFound();
             }
 
-            var response = updatedMovie.MapToResponse();
+            var response = updatedEvent.MapToResponse();
             return Ok(response);
+        }
+
+        /// <summary>
+        /// Sets Event tickets.
+        /// </summary>
+        /// <remarks>
+        /// This API sets tickets for an Event.
+        /// </remarks>
+        /// <returns>Updated event object.</returns>
+        [HttpPost("{eventId}/settickets")]
+        public async Task<IActionResult> SetEventTicketsAsync(
+                        [FromRoute] string eventId,
+                        [FromBody] List<CreateTicketsRequest> ticketsRequest,
+                        CancellationToken token = default)
+        {
+            // This should be done by a separate validator
+            // TODO: Add validation for duplicate tickets, price etc.
+            if (!Guid.TryParse(eventId, out var eventIdGuid))
+            {
+
+                return BadRequest("Invalid Event Id format. Event Id should be a valid Guid.");
+            }
+
+            if (ticketsRequest is null || !ticketsRequest.Any())
+            {
+                return BadRequest("Tickets request cannot be null or empty.");
+            }
+
+            var @event = await _eventService.GetByIdAsync(eventIdGuid, token);
+            if (@event == null)
+            {
+                return NotFound($"Event with Id {eventId} does not exist.");
+            }
+
+            if (!await _eventService.SetTicketsAsync(ticketsRequest, eventIdGuid, token))
+            {
+                return BadRequest("Failed to set tickets for the event.");
+            }
+
+            return Ok();
         }
     }
 }

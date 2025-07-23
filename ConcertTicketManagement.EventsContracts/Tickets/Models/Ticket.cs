@@ -5,7 +5,7 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
     {
         const int ReservationDurationInMinutes = 10;
 
-        public Guid TicketId { get; private set; }
+        public Guid Id { get; private set; }
 
         public Guid EventId { get; private set; }
 
@@ -19,9 +19,13 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
 
         public bool IsReserved { get; private set; } = false;
 
-        private readonly object _ticketsLock = new();
+        /// <summary>
+        /// Indicates whether the ticket is blocked for purchase - 
+        /// decrease event capacity, scene installation etc
+        /// </summary>
+        public bool IsBlocked { get; private set; } = false;
 
-        private DateTime? ReservationExpiresAt { get; set; } = null;
+        private readonly object _ticketsLock = new();
 
         /// <summary>
         /// Inializes a new instance of the <see cref="Ticket"/> class with specified type, price, and seat location.
@@ -32,7 +36,7 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
         public Ticket(Guid eventId, TicketType type, decimal price, SeatLocation seatLocation)
         {
             EventId = eventId;
-            TicketId = Guid.NewGuid();
+            Id = Guid.NewGuid();
             Type = type;
             Price = price;
             SeatLocation = seatLocation;
@@ -53,11 +57,16 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
                     throw new InvalidOperationException("Ticket is already sold.");
                 }
 
-                ReservationExpiresAt = null;
                 IsAvailable = false;
             }
         }
 
+        /// <summary>
+        /// Marks the ticket as reserved, preventing it from being sold or reserved again.
+        /// </summary>
+        /// <remarks>This method sets the ticket's reservation status and expiration time.  It ensures
+        /// that a ticket cannot be reserved if it is already sold or reserved.</remarks>
+        /// <exception cref="InvalidOperationException">Thrown if the ticket is already sold or if the ticket is already reserved.</exception>
         public void MarkAsReserved()
         {
             lock (_ticketsLock)
@@ -72,8 +81,18 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
                     throw new InvalidOperationException("Ticket is reserved.");
                 }
 
-                ReservationExpiresAt = DateTime.UtcNow.AddMinutes(ReservationDurationInMinutes);
                 IsReserved = true;
+            }
+        }
+
+        /// <summary>
+        /// Releases the reservation on the ticket, allowing it to be reserved or sold again.
+        /// </summary>
+        public void ReleaseReservation()
+        {
+            lock (_ticketsLock)
+            {
+                IsReserved = false;
             }
         }
     }

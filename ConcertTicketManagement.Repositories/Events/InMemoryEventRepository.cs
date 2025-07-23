@@ -2,17 +2,16 @@
 
 namespace ConcertTicketManagement.Repositories.Events
 {
-    public sealed class InMemoryTicketRepository : IEventRepository
+    public sealed class InMemoryEventRepository : IEventRepository
     {
         private readonly Dictionary<Guid, Event> _events = new();
 
         /// <inheritdoc/>
         public async Task<bool> CreateAsync(Event @event, CancellationToken token = default)
         {
-            // Simulate async operation
-            await Task.CompletedTask;
+            var result = _events.TryAdd(@event.Id, @event);
 
-            return _events.TryAdd(@event.Id, @event);
+            return await Task.FromResult(result);
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync(CancellationToken token)

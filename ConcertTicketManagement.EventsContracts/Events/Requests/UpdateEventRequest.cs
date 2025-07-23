@@ -6,11 +6,6 @@
     public sealed record UpdateEventRequest
     {
         /// <summary>
-        /// Id of the event.
-        /// </summary>
-        public Guid Id { get; init; }
-
-        /// <summary>
         /// Date of the event.
         /// </summary>
         public required string EventDate{ get; set; }

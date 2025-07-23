@@ -44,6 +44,7 @@ namespace ConcertTicketManagement.Tests
             EventResponse eventResponse = (EventResponse)result?.Value;
 
             Assert.Equal(@event.Id, eventResponse?.Id);
+            this._eventServiceMock.Verify(x => x.GetByIdAsync(@event.Id, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -56,6 +57,7 @@ namespace ConcertTicketManagement.Tests
                 await this._controller.GetEventAsync(Guid.Empty.ToString());
 
             var result = Assert.IsType<NotFoundResult>(response);
+            this._eventServiceMock.Verify(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -65,6 +67,7 @@ namespace ConcertTicketManagement.Tests
                 await this._controller.GetEventAsync("123-4456");
             
             Assert.IsType<BadRequestObjectResult>(response);
+            this._eventServiceMock.Verify(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -92,6 +95,9 @@ namespace ConcertTicketManagement.Tests
             Assert.Equal(eventRequest.Description, eventResponse?.Description);
             Assert.Equal(eventRequest.EventDate, eventResponse?.EventDate.ToString());
             Assert.Equal(TimeOnly.Parse(eventTime), eventResponse?.EventTime);
+
+            this._eventServiceMock.Verify(
+                x => x.CreateAsync(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -122,6 +128,8 @@ namespace ConcertTicketManagement.Tests
             Assert.Equal(eventRequest.Description, eventResponse?.Description);
             Assert.Equal(DateOnly.Parse(eventRequest.EventDate), eventResponse?.EventDate);
             Assert.Equal(TimeOnly.Parse(time), eventResponse?.EventTime);
+
+            this._eventServiceMock.Verify(x => x.CreateAsync(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -153,6 +161,9 @@ namespace ConcertTicketManagement.Tests
             Assert.Equal(eventRequest.Description, eventResponse?.Description);
             Assert.Equal(DateOnly.Parse(eventRequest.EventDate), eventResponse?.EventDate);
             Assert.Equal(TimeOnly.Parse(eventTime), eventResponse?.EventTime);
+
+            this._eventServiceMock.Verify(
+                x => x.CreateAsync(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Theory]
@@ -173,6 +184,8 @@ namespace ConcertTicketManagement.Tests
                 await this._controller.CreateEventAsync(eventRequest);
 
             var result = Assert.IsType<BadRequestObjectResult>(response);
+            this._eventServiceMock.Verify(
+                x => x.CreateAsync(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Theory]
@@ -192,6 +205,8 @@ namespace ConcertTicketManagement.Tests
                 await this._controller.CreateEventAsync(eventRequest);
 
             var result = Assert.IsType<BadRequestObjectResult>(response);
+            this._eventServiceMock.Verify(
+                x => x.CreateAsync(It.IsAny<Event>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -215,6 +230,8 @@ namespace ConcertTicketManagement.Tests
             EventsResponse eventsResponse = (EventsResponse)result?.Value;
 
             Assert.Equal(events.Count, eventsResponse?.Items.Count());
+            this._eventServiceMock.Verify(
+                x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -232,6 +249,8 @@ namespace ConcertTicketManagement.Tests
             EventsResponse eventsResponse = (EventsResponse)result?.Value;
 
             Assert.Equal(events.Count, eventsResponse?.Items.Count());
+            this._eventServiceMock.Verify(
+                x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         protected virtual void Dispose(bool disposing)

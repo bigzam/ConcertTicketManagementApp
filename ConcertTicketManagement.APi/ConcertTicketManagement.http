@@ -1,6 +1,139 @@
 @ConcertTicketManagement_HostAddress = http://localhost:5158
 
-GET {{ConcertTicketManagement_HostAddress}}/weatherforecast/
+GET {{ConcertTicketManagement_HostAddress}}/api/v1/events
 Accept: application/json
+
+###
+
+GET {{ConcertTicketManagement_HostAddress}}/api/v1/events/78e1437f-288e-48a2-abed-8398897d414b
+Accept: application/json
+
+###
+# @name createevent
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/events
+Content-Type: application/json 
+
+{
+  "eventDate": "2025-09-22",
+  "eventTime": "17:00",
+  "venue": "Lumen Field",
+  "description": "ColdPlay concert"
+}
+
+###
+
+GET {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}
+Accept: application/json
+
+###
+
+PUT {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}
+Content-Type: application/json 
+
+{
+  "eventDate": "2025-09-29",
+  "eventTime": "19:00",
+  "venue": "Lumen Field",
+  "description": "ColdPlay concert"
+}
+
+###
+# @name createevent
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/events
+Content-Type: application/json 
+
+{
+  "eventDate": "2025-09-29",
+  "eventTime": "19:00",
+  "venue": "T Mobile Park",
+  "description": "The Weekend concert"
+}
+
+###
+# @name createevent
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/events
+Content-Type: application/json 
+
+{
+  "eventDate": "2025-11-02",
+  "eventTime": "21:00",
+  "venue": "Lumen Field",
+  "description": "Taylor Swift tour"
+}
+
+###
+# @name createevent
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/events
+Content-Type: application/json 
+
+{
+  "eventDate": "2025-09-22",
+  "eventTime": "17:00",
+  "venue": "Lumen Field",
+  "description": "ColdPlay concert"
+}
+
+###
+# @name createevent
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/events
+Content-Type: application/json 
+
+{
+  "eventDate": "2025-12-10",
+  "eventTime": "21:00",
+  "venue": "Climate Pledge Arena ",
+  "description": "Sting concert"
+}
+
+###
+# @name createtickets
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}/settickets
+Content-Type: application/json 
+
+[
+  {
+    "seatLocation": {
+      "section": "221",
+      "row": "15",
+      "seatNumber": 10
+    },
+    "price": 120,
+    "type": 0
+  },
+  {
+    "seatLocation": {
+      "section": "221",
+      "row": "15",
+      "seatNumber": 11
+    },
+    "price": 120,
+    "type": 0
+  },
+  {
+    "seatLocation": {
+      "section": "221",
+      "row": "15",
+      "seatNumber": 12
+    },
+    "price": 110,
+    "type": 0
+  }
+]
+
+###
+
+# @name geteventtickets
+GET {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/{{createevent.response.body.$.id}}
+
+###
+
+# Reserve a ticket
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/{{geteventtickets.response.body.$.items[0].id}}/events/{{createevent.response.body.$.id}}
+
+###
+
+
+# Cancel ticket reservation
+DELETE {{ConcertTicketManagement_HostAddress}}/api/v1/tickets
 
 ###

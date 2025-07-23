@@ -1,7 +1,9 @@
 
 using ConcertTicketManagement.Application.Events.Services;
+using ConcertTicketManagement.Application.Payment;
+using ConcertTicketManagement.Application.Tickets.Services;
 using ConcertTicketManagement.Repositories.Events;
-using Microsoft.AspNetCore.Authorization;
+using ConcertTicketManagement.Repositories.Tickets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +14,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IPaymentProcessingService, PaymentProcessingService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddSingleton<ITicketRepository, InMemoryTicketRepository>();
+
 builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddSingleton<IEventRepository, InMemoryTicketRepository>();
+builder.Services.AddSingleton<IEventRepository, InMemoryEventRepository>();
 
 var app = builder.Build();
 

@@ -1,52 +1,138 @@
 ﻿using ConcertTicketManagement.Contracts.Events.Models;
+using ConcertTicketManagement.Contracts.Tickets.Models;
+using Validation;
 
 namespace ConcertTicketManagement.Repositories.Tickets
 {
     public sealed class InMemoryTicketRepository : ITicketRepository
     {
-        private readonly Dictionary<Guid, Event> _events = new();
+        private readonly Dictionary<Guid, List<Ticket>> _tickets = new();
+
+        private readonly Dictionary<Guid, List<Ticket>> _shoppingCart = new();
 
         /// <inheritdoc/>
-        public async Task<bool> CreateAsync(Event @event, CancellationToken token = default)
+        public Task<Ticket?> GetAvailableTicketByIdAsync(Guid ticketId, Guid eventId, CancellationToken token)
         {
-            // Simulate async operation
-            await Task.CompletedTask;
 
-            return _events.TryAdd(@event.Id, @event);
-        }
-
-        public async Task<IEnumerable<Event>> GetAllAsync(CancellationToken token)
-        {
-            await Task.CompletedTask;
-
-            return _events.Values.ToList();
-        }
-
-        /// <inheritdoc/>
-        public async Task<Event?> GetByIdAsync(Guid eventId, CancellationToken token = default)
-        {
-            if (_events.ContainsKey(eventId))
+            if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
             {
-                // Simulate async operation
-                await Task.CompletedTask; 
-                return _events[eventId];
+                return Task.FromResult((Ticket?)null);
+            }
+            else
+            {
+                return Task.FromResult(
+                    tickets.Where(t => t.IsAvailable && !t.IsReserved && !t.IsBlocked && t.Id == ticketId).FirstOrDefault());
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task<IEnumerable<Ticket>> GetAvailableTicketsForEventAsync(Guid eventId, CancellationToken token)
+        {
+            if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
+            {
+                return Task.FromResult(Enumerable.Empty<Ticket>());
             }
 
-            return null;
+            return Task.FromResult(
+                tickets.Where(t => t.IsAvailable && !t.IsReserved && !t.IsBlocked));
+        }
+        /// <inheritdoc/>
+        public Task<bool> ReserveAsync(Guid userId, Guid ticketId, Guid eventId, CancellationToken token)
+        {
+            try
+            {
+                var ticket = this.SetTicketReservedStatus(ticketId, eventId);
+
+                if (ticket is null)
+                {
+                    return Task.FromResult(false);
+                }
+
+                if (!_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
+                {
+                    _shoppingCart.Add(userId, new List<Ticket> { ticket });
+                }
+                else
+                {
+                    _shoppingCart[userId].Add(ticket);
+                }
+            }
+            catch(InvalidOperationException)
+            {
+                // log exception - ticket is already reserved.
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc/>
-        public async Task<Event?> UpdateAsync(Event @event, CancellationToken token)
+        public Task<bool> SetTicketsForEventAsync(IEnumerable<Ticket> tickets, CancellationToken token)
         {
-            if (_events.ContainsKey(@event.Id))
-            {
-                await Task.CompletedTask;
-                _events[@event.Id] = @event;
+            Requires.NotNull(tickets, nameof(tickets));
 
-                return _events[@event.Id];
+            var eventId = tickets.First().EventId;
+            try
+            {
+                if (_tickets.ContainsKey(eventId))
+                {
+                    _tickets[eventId].AddRange(tickets);
+                }
+                else
+                {
+                    _tickets.Add(tickets.First().EventId, tickets.ToList());
+                }
+            }
+            catch (ArgumentException)
+            {
+                // Log exception
+                return Task.FromResult(false);
             }
 
-            return null;
+            return Task.FromResult(true);
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CancelReservationAsync(Guid userId, CancellationToken token)
+        {
+            try
+            {
+                this.ReleaseTickets(userId);
+            }
+            catch (InvalidOperationException)
+            {
+                // log exception - ticket is already reserved.
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
+
+        private void ReleaseTickets(Guid userId)
+        {
+            if(_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
+            {                 
+                foreach (var ticket in tickets)
+                {
+                    ticket.ReleaseReservation();
+                }
+            }
+        }
+
+        private Ticket? SetTicketReservedStatus(Guid ticketId, Guid eventId)
+        {
+            if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
+            {
+                return null;
+            }
+
+            var ticket = tickets.FirstOrDefault(t => t.Id == ticketId);
+            if (ticket != null)
+            {
+                ticket.MarkAsReserved();
+            }
+
+            return ticket;
         }
     }
 }
