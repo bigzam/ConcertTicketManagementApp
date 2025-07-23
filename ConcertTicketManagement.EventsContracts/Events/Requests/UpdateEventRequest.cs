@@ -1,14 +1,19 @@
 ﻿namespace ConcertTicketManagement.Contracts.Events.Requests
 {
     /// <summary>
-    /// CreateEventRequest class in the concert ticket management system.
+    /// UpdateEventRequest class in the concert ticket management system.
     /// </summary>
-    public sealed record CreateEventRequest
+    public sealed record UpdateEventRequest
     {
+        /// <summary>
+        /// Id of the event.
+        /// </summary>
+        public Guid Id { get; init; }
+
         /// <summary>
         /// Date of the event.
         /// </summary>
-        public required DateOnly EventDate{ get; set; }
+        public required string EventDate{ get; set; }
 
         /// <summary>
         /// Time of the event.

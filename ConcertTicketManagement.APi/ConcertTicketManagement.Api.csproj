@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ConcertTicketManagement.Application\ConcertTicketManagement.Application.csproj" />
-    <ProjectReference Include="..\EventsContracts\ConcertTicketManagement.Contracts.csproj" />
+    <ProjectReference Include="..\ConcertTicketManagement.EventsContracts\ConcertTicketManagement.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

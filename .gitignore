@@ -12,3 +12,10 @@
 /ConcertTicketManagement.Repositories/obj
 /EventsContracts/bin
 /EventsContracts/obj
+/ConcertTicketManagement.APi/bin
+/ConcertTicketManagement.APi/obj
+/ConcertTicketManagement.EventsContracts/bin
+/ConcertTicketManagement.EventsContracts/obj
+/ConcertTicketManagement.Tests/bin
+/ConcertTicketManagement.Tests/obj
+/ConcertTicketManagement.APi/ConcertTicketManagement.Api.csproj.user

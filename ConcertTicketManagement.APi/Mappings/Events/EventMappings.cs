@@ -16,12 +16,30 @@ namespace ConcertTicketManagement.Api.Mappings.Events
             return new Event
             {
                 Id = Guid.NewGuid(),
-                EventDate = request.EventDate,
+                EventDate = DateOnly.Parse(request.EventDate),
                 EventTime = TimeOnly.Parse(request.EventTime),
                 Venue = request.Venue,
                 Description = request.Description
             };
         }
+
+        /// <summary>
+        /// Maps UpdateEventRequest to Event.
+        /// </summary>
+        /// <param name="request">UpdateEventRequest object.</param>
+        /// <returns>Event object.</returns>
+        public static Event MapToEvent(this UpdateEventRequest request, Guid id)
+        {
+            return new Event
+            {
+                Id = id,
+                EventDate = DateOnly.Parse(request.EventDate),
+                EventTime = TimeOnly.Parse(request.EventTime),
+                Venue = request.Venue,
+                Description = request.Description
+            };
+        }
+
         /// <summary>
         /// Maps Event to EventResponse.
         /// </summary>

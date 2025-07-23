@@ -9,22 +9,34 @@ namespace ConcertTicketManagement.Repositories.Events
         /// <inheritdoc/>
         public async Task<bool> CreateAsync(Event @event, CancellationToken token = default)
         {
-            _events.Add(@event.Id, @event);
-
             // Simulate async operation
             await Task.CompletedTask;
 
-            return true;
+            return _events.TryAdd(@event.Id, @event);
         }
 
         /// <inheritdoc/>
-        public async Task<Event?> GetEventDetailsAsync(Guid eventId, CancellationToken token = default)
+        public async Task<Event?> GetByIdAsync(Guid eventId, CancellationToken token = default)
         {
             if (_events.ContainsKey(eventId))
             {
                 // Simulate async operation
                 await Task.CompletedTask; 
                 return _events[eventId];
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Event?> UpdateAsync(Event @event, CancellationToken token)
+        {
+            if (_events.ContainsKey(@event.Id))
+            {
+                await Task.CompletedTask;
+                _events[@event.Id] = @event;
+
+                return _events[@event.Id];
             }
 
             return null;

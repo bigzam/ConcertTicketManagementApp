@@ -19,10 +19,20 @@ namespace ConcertTicketManagement.Application.Events.Services
             return await _repository.CreateAsync(@event, token);
         }
 
+        public async Task<Event?> GetByIdAsync(Guid id, CancellationToken token)
+        {
+            return await _repository.GetByIdAsync(id, token);
+        }
+
         /// <inheritdoc/>
         public async Task<Event?> GetEventDetailsAsync(Guid id, CancellationToken token)
         {
-            return await _repository.GetEventDetailsAsync(id, token);
+            return await _repository.GetByIdAsync(id, token);
+        }
+
+        public async Task<Event?> UpdateAsync(Event @event, CancellationToken token)
+        {
+            return await _repository.UpdateAsync(@event, token);
         }
     }
 }

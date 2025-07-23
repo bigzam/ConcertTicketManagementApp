@@ -30,6 +30,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+// TODO: need to be implemented
+// app.UseMiddleware<ValidationMappingMiddleware>();
+
 app.MapControllers();
 
 app.Run();
