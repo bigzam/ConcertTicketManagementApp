@@ -14,6 +14,12 @@ namespace ConcertTicketManagement.Application.Events.Services
         Task<Event?> GetByIdAsync(Guid id, CancellationToken token);
 
         /// <summary>
+        /// Gets All Events.
+        /// </summary>
+        /// <returns>List of events.</returns>
+        Task<IEnumerable<Event>> GetAllAsync(CancellationToken token);
+
+        /// <summary>
         /// Creates Event.
         /// </summary>
         /// <param name="event">Event.</param>

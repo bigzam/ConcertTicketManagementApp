@@ -10,10 +10,12 @@ using Xunit;
 
 namespace ConcertTicketManagement.Tests
 {
-    public sealed class EventsControllerTests
+    public class EventsControllerTests : IDisposable
     {
         private readonly Mock<IEventService> _eventServiceMock;
         private readonly EventsController _controller;
+
+        private bool disposedValue;
 
         public EventsControllerTests()
         {
@@ -21,10 +23,15 @@ namespace ConcertTicketManagement.Tests
             _controller = new EventsController(_eventServiceMock.Object);
         }
 
+        public void Dispose()
+        {
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
         [Fact]
         public async Task GetByIdAsync_ShouldReturnEvent_WhenEventExists()
         {
-            // Arrange
             Event @event = BuildValidEvent();
 
             this._eventServiceMock.Setup(
@@ -36,39 +43,33 @@ namespace ConcertTicketManagement.Tests
             var result = Assert.IsType<OkObjectResult>(response);
             EventResponse eventResponse = (EventResponse)result?.Value;
 
-            // Assert
             Assert.Equal(@event.Id, eventResponse?.Id);
         }
 
         [Fact]
-        public async Task GetByIdAsync_ShouldReturnNonFound_WhenEventDoesntExist()
+        public async Task GetByIdAsync_ShouldReturnNotFound_WhenEventDoesntExist()
         {
-            // Arrange
             this._eventServiceMock.Setup(
                 x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Event?)null);
 
             var response =
                 await this._controller.GetEventAsync(Guid.Empty.ToString());
 
-            // Assert
             var result = Assert.IsType<NotFoundResult>(response);
         }
 
         [Fact]
         public async Task GetByIdAsync_ShouldReturnBadRequest_WhenEventIdIsNotValidGuid()
         {
-            // Arrange
             var response =
                 await this._controller.GetEventAsync("123-4456");
-
-            // Assert
+            
             Assert.IsType<BadRequestObjectResult>(response);
         }
 
         [Fact]
         public async Task CreateEventAsync_ShouldCreateAndReturnEvent_WhenValidCreateEventRequest()
         {
-            // Arrange
             string eventTime = "18:00";
             CreateEventRequest eventRequest = new CreateEventRequest
             {
@@ -87,7 +88,6 @@ namespace ConcertTicketManagement.Tests
             var result = Assert.IsType<OkObjectResult>(response);
             EventResponse eventResponse = (EventResponse)result?.Value;
 
-            // Assert
             Assert.Equal(eventRequest.Venue, eventResponse?.Venue);
             Assert.Equal(eventRequest.Description, eventResponse?.Description);
             Assert.Equal(eventRequest.EventDate, eventResponse?.EventDate.ToString());
@@ -101,7 +101,6 @@ namespace ConcertTicketManagement.Tests
         [InlineData("12:45 pm")]
         public async Task CreateEventAsync_ShouldCreateAndReturnEvent_WhenEventTimeInValidFormat(string time)
         {
-            // Arrange
             CreateEventRequest eventRequest = new CreateEventRequest
             {
                 EventDate = DateOnly.FromDateTime(DateTime.Now.AddDays(100)).ToString(),
@@ -119,7 +118,6 @@ namespace ConcertTicketManagement.Tests
             var result = Assert.IsType<OkObjectResult>(response);
             EventResponse eventResponse = (EventResponse)result?.Value;
 
-            // Assert
             Assert.Equal(eventRequest.Venue, eventResponse?.Venue);
             Assert.Equal(eventRequest.Description, eventResponse?.Description);
             Assert.Equal(DateOnly.Parse(eventRequest.EventDate), eventResponse?.EventDate);
@@ -133,7 +131,6 @@ namespace ConcertTicketManagement.Tests
         [InlineData("12/31/2025")]
         public async Task CreateEventAsync_ShouldCreateAndReturnEvent_WhenEventDateInValidFormat(string date)
         {
-            // Arrange
             string eventTime = "18:00";
             CreateEventRequest eventRequest = new CreateEventRequest
             {
@@ -152,7 +149,6 @@ namespace ConcertTicketManagement.Tests
             var result = Assert.IsType<OkObjectResult>(response);
             EventResponse eventResponse = (EventResponse)result?.Value;
 
-            // Assert
             Assert.Equal(eventRequest.Venue, eventResponse?.Venue);
             Assert.Equal(eventRequest.Description, eventResponse?.Description);
             Assert.Equal(DateOnly.Parse(eventRequest.EventDate), eventResponse?.EventDate);
@@ -165,7 +161,6 @@ namespace ConcertTicketManagement.Tests
         [InlineData("01:01 fm")]
         public async Task CreateEventAsync_ShouldReturnBadRequest_WhenInvalidTimeFormat(string eventTime)
         {
-            // Arrange
             CreateEventRequest eventRequest = new CreateEventRequest
             {
                 EventDate = "2025-10-01",
@@ -177,7 +172,6 @@ namespace ConcertTicketManagement.Tests
             var response =
                 await this._controller.CreateEventAsync(eventRequest);
 
-            // Assert
             var result = Assert.IsType<BadRequestObjectResult>(response);
         }
 
@@ -186,7 +180,6 @@ namespace ConcertTicketManagement.Tests
         [InlineData("31/31/2025")]
         public async Task CreateEventAsync_ShouldReturnBadRequest_WhenInvalidDateFormat(string date)
         {
-            // Arrange
             CreateEventRequest eventRequest = new CreateEventRequest
             {
                 EventDate = date,
@@ -198,11 +191,65 @@ namespace ConcertTicketManagement.Tests
             var response =
                 await this._controller.CreateEventAsync(eventRequest);
 
-            // Assert
             var result = Assert.IsType<BadRequestObjectResult>(response);
         }
 
-        private Event BuildValidEvent()
+        [Fact]
+        public async Task GetEventsAsync_ShouldReturnAllEvents_WhenEventsExist()
+        {
+            Event event1 = BuildValidEvent();
+            Event event2 = BuildValidEvent();
+            event2.EventDate.AddMonths(1);
+            event2.Description = "Another Test Description";
+            event2.Venue = "Another Test Venue";
+
+            List<Event> events = new List<Event> { event1, event2 };
+
+            this._eventServiceMock.Setup(
+                x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(events);
+
+            var response =
+                await this._controller.GetEventsAsync();
+
+            var result = Assert.IsType<OkObjectResult>(response);
+            EventsResponse eventsResponse = (EventsResponse)result?.Value;
+
+            Assert.Equal(events.Count, eventsResponse?.Items.Count());
+        }
+
+        [Fact]
+        public async Task GetEventsAsync_ShouldReturnEmptySet_WhenNoEventsExist()
+        {
+            List<Event> events = new List<Event> ();
+
+            this._eventServiceMock.Setup(
+                x => x.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(events);
+
+            var response =
+                await this._controller.GetEventsAsync();
+
+            var result = Assert.IsType<OkObjectResult>(response);
+            EventsResponse eventsResponse = (EventsResponse)result?.Value;
+
+            Assert.Equal(events.Count, eventsResponse?.Items.Count());
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
+            {
+                if (disposing)
+                {
+                    this._eventServiceMock.VerifyAll();
+                    this._eventServiceMock.VerifyNoOtherCalls();
+                }
+
+                this.disposedValue = true;
+            }
+        }
+
+        // Potentially use Bogus nuget package to generate data for tests.
+        private static Event BuildValidEvent()
         {
             return new Event
             {

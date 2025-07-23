@@ -14,14 +14,14 @@ namespace ConcertTicketManagement.Controllers
         }
 
         /// <summary>
-        /// View Ticket
+        /// View Tickets
         /// </summary>
         /// <remarks>
-        /// This API retrieves available tickets
+        /// This API retrieves available tickets for given event Id
         /// </remarks>
-        /// <returns>Available tickets.</returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAvailableTicketsAsync()
+        /// <returns>List of available tickets.</returns>
+        [HttpGet("{eventId}")]
+        public async Task<IActionResult> GetAvailableTicketsAsync(string eventId, CancellationToken token)
         {
             await Task.Yield();
             return Ok();

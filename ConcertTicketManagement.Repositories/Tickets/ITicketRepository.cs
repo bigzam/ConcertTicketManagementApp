@@ -1,8 +1,8 @@
 ﻿using ConcertTicketManagement.Contracts.Events.Models;
 
-namespace ConcertTicketManagement.Repositories.Events
+namespace ConcertTicketManagement.Repositories.Tickets
 {
-    public interface IEventRepository
+    public interface ITicketRepository
     {
         /// <summary>
         /// Creates an event in the repository.

@@ -1,7 +1,7 @@
 using ConcertTicketManagement.Api.Mappings.Events;
 using ConcertTicketManagement.Application.Events.Services;
 using ConcertTicketManagement.Contracts.Events.Requests;
-
+using ConcertTicketManagement.Contracts.Events.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -20,10 +20,10 @@ namespace ConcertTicketManagement.Controllers
 
 
         /// <summary>
-        /// Creates Event.
+        /// Gets Event by Id.
         /// </summary>
         /// <remarks>
-        /// This API creates an Event.
+        /// This API gets an Event by Id.
         /// </remarks>
         /// <returns>Event object.</returns>
         [HttpGet("{id}")]
@@ -45,6 +45,24 @@ namespace ConcertTicketManagement.Controllers
             }
 
             var response = @event.MapToResponse();
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Creates Event.
+        /// </summary>
+        /// <remarks>
+        /// This API creates an Event.
+        /// </remarks>
+        /// <returns>Event object.</returns>
+        [HttpGet]
+        //[ProducesResponseType(typeof(EventsResponse), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(BadRequestObjectResult), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetEventsAsync(CancellationToken token = default)
+        {
+            var events = await _eventService.GetAllAsync(token);
+
+            var response = events.MapToResponse();
             return Ok(response);
         }
 

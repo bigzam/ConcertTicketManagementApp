@@ -13,7 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddSingleton<IEventRepository, InMemoryEventRepository>();
+builder.Services.AddSingleton<IEventRepository, InMemoryTicketRepository>();
 
 var app = builder.Build();
 

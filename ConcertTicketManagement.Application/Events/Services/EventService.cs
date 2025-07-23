@@ -1,5 +1,4 @@
-﻿
-using ConcertTicketManagement.Contracts.Events.Models;
+﻿using ConcertTicketManagement.Contracts.Events.Models;
 using ConcertTicketManagement.Repositories.Events;
 
 namespace ConcertTicketManagement.Application.Events.Services
@@ -22,6 +21,11 @@ namespace ConcertTicketManagement.Application.Events.Services
         public async Task<Event?> GetByIdAsync(Guid id, CancellationToken token)
         {
             return await _repository.GetByIdAsync(id, token);
+        }
+
+        public async Task<IEnumerable<Event>> GetAllAsync(CancellationToken token)
+        {
+            return await _repository.GetAllAsync(token);
         }
 
         /// <inheritdoc/>

@@ -56,5 +56,18 @@ namespace ConcertTicketManagement.Api.Mappings.Events
                 Description = @event.Description
             };
         }
+
+        /// <summary>
+        /// Maps all Events to EventsResponse.
+        /// </summary>
+        /// <returns>EventsResponse object.</returns>
+        public static EventsResponse MapToResponse(this IEnumerable<Event> events)
+        {
+            // TODO: implement paging
+            return new EventsResponse
+            {
+                Items = events.Select(MapToResponse),
+            };
+        }
     }
 }

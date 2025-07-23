@@ -1,8 +1,8 @@
 ﻿using ConcertTicketManagement.Contracts.Events.Models;
 
-namespace ConcertTicketManagement.Repositories.Events
+namespace ConcertTicketManagement.Repositories.Tickets
 {
-    public sealed class InMemoryTicketRepository : IEventRepository
+    public sealed class InMemoryTicketRepository : ITicketRepository
     {
         private readonly Dictionary<Guid, Event> _events = new();
 
