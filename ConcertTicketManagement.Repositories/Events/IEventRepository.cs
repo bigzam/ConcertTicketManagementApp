@@ -9,7 +9,7 @@ namespace ConcertTicketManagement.Repositories.Events
         /// </summary>
         /// <param name="event">Event object to be created.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>True if event succesfuly create. False otherwise.</returns>
+        /// <returns>True if event successfully create. False otherwise.</returns>
         Task<bool> CreateAsync(Event @event, CancellationToken token);
 
         /// <summary>
@@ -17,7 +17,7 @@ namespace ConcertTicketManagement.Repositories.Events
         /// </summary>
         /// <param name="event">Event object to be updated.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>Update enevt object if event succesfuly updated. Null otherwise.</returns>
+        /// <returns>Update event object if event successfully updated. Null otherwise.</returns>
         Task<Event?> UpdateAsync(Event @event, CancellationToken token);
 
         /// <summary>

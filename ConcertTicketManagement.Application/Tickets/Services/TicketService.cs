@@ -1,7 +1,6 @@
-﻿
-using System.Net.Sockets;
-using ConcertTicketManagement.Application.Payment;
+﻿using ConcertTicketManagement.Application.Payment;
 using ConcertTicketManagement.Contracts.Payments;
+using ConcertTicketManagement.Contracts.Payments.Responses;
 using ConcertTicketManagement.Contracts.Tickets.Models;
 using ConcertTicketManagement.Repositories.Tickets;
 
@@ -31,18 +30,19 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token)
+        public async Task<PaymentResponse> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token)
         {
             var tickets = await _ticketRepository.GetTicketsFromShoppingCart(userId, token);
-            if(tickets == null || !tickets.Any())
+            if (tickets == null || !tickets.Any())
             {
-                return false;
+                return new PaymentResponse { ErrorMessage = "Shopping card is empty!" };
             }
+
             // This whole block should be transactional.
-            // All tickets should be marked as Sold or none if payment processed succesfully.
+            // All tickets should be marked as Sold or none if payment processed successfully.
             // If ticket.MarkAsSold() fails for any ticket, payment should be rolled back.
-            var toatlPrice = tickets.Sum(t => t.Price);
-            var paymentId = await _paymentProcessingService.ProcessPayment(toatlPrice, paymentMethodInformation);
+            var totalPrice = tickets.Sum(t => t.Price);
+            var paymentId = await _paymentProcessingService.ProcessPayment(totalPrice, paymentMethodInformation);
             var soldTickets = new List<Ticket>();
 
             foreach (var ticket in tickets)
@@ -54,9 +54,8 @@ namespace ConcertTicketManagement.Application.Tickets.Services
 
                     await _ticketRepository.CancelReservationAsync(userId, token);
                 }
-                catch (InvalidOperationException)
+                catch (InvalidOperationException ex)
                 {
-                    // If ticket is already sold, it should be removed from the shopping cart.
                     await _paymentProcessingService.RevertPayment(paymentId);
 
                     // Revert tickets sale
@@ -64,10 +63,17 @@ namespace ConcertTicketManagement.Application.Tickets.Services
                     {
                         soldTicket.RevertSold();
                     }
+                    return new PaymentResponse { ErrorMessage = ex.Message };
                 }
             }
 
-            return true;
+            return new PaymentResponse
+            {
+                IsSuccessful = true,
+                TransactionId = paymentId,
+                TotalPrice = totalPrice,
+                Tickets = soldTickets.Select(t => t.Id.ToString()),
+            };
         }
 
         /// <inheritdoc/>

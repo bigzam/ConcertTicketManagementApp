@@ -10,8 +10,6 @@
 /ConcertTicketManagement.Application/obj/*
 /ConcertTicketManagement.Repositories/bin
 /ConcertTicketManagement.Repositories/obj
-/EventsContracts/bin
-/EventsContracts/obj
 /ConcertTicketManagement.Api/bin
 /ConcertTicketManagement.Api/obj
 /ConcertTicketManagement.EventsContracts/bin

@@ -11,7 +11,7 @@
                 return parsedId;
             }
 
-            // Hardcoding for now , should be replaced with proper user Id retrieval logic
+            // Hardcoding for now, should be replaced with proper user Id retrieval logic
             return Guid.Parse("ad3356e4-57df-4ca3-b102-0f07c50d14af");
         }
     }

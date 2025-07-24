@@ -238,9 +238,10 @@ namespace ConcertTicketManagement.Controllers
                 }
                 ticketGuids.Add(ticketGuid);
             }
-            await _eventService.BlockEventTicketsAsync(eventGuid, ticketGuids, token);
 
-            return Ok();
+            var blockedList = await _eventService.BlockEventTicketsAsync(eventGuid, ticketGuids, token);
+
+            return Ok(blockedList);
         }
 
         [HttpPatch("{eventId}/unblocktickets")]
@@ -281,9 +282,9 @@ namespace ConcertTicketManagement.Controllers
                 return NotFound($"Event with Id {eventId} not found.");
             }
 
-            await _eventService.UnBlockEventTicketsAsync(eventGuid, ticketGuids, token);
+            var unBlockedList = await _eventService.UnBlockEventTicketsAsync(eventGuid, ticketGuids, token);
 
-            return Ok();
+            return Ok(unBlockedList);
         }
     }
 }

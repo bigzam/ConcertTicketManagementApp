@@ -1,5 +1,6 @@
 using ConcertTicketManagement.Api.Auth;
 using ConcertTicketManagement.Api.Mappings.Tickets;
+using ConcertTicketManagement.Application.Events.Services;
 using ConcertTicketManagement.Application.Tickets.Services;
 using ConcertTicketManagement.Contracts.Payments;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace ConcertTicketManagement.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ITicketService _ticketService;
+        private readonly IEventService _eventService;
 
-        public TicketsController(ITicketService ticketService)
+        public TicketsController(ITicketService ticketService, IEventService eventService)
         {
             _ticketService = ticketService;
+            _eventService = eventService;
         }
 
         /// <summary>
@@ -31,6 +34,12 @@ namespace ConcertTicketManagement.Controllers
             if (!Guid.TryParse(eventId, out var eventGuid))
             {
                 return BadRequest("Invalid Event Id format. Event Id should be a valid Guid.");
+            }
+
+            var @event = await _eventService.GetByIdAsync(eventGuid, token);
+            if (@event == null)
+            {
+                return NotFound($"Event with Id {eventId} not found.");
             }
 
             var tickets = await _ticketService.GetAvailableTicketsForEventAsync(eventGuid, token);
@@ -50,7 +59,7 @@ namespace ConcertTicketManagement.Controllers
         /// </summary>
         /// <remarks>
         /// This API reserves a ticket by setting it's IsReserved status to true.
-        /// The ticket becames unavavilable for other to reserve/buy.
+        /// The ticket becomes unavailable for other to reserve/buy.
         /// </remarks>
         /// <returns></returns>
         [HttpPost("{ticketId}/events/{eventId}/reservation")]
@@ -67,15 +76,21 @@ namespace ConcertTicketManagement.Controllers
                 return BadRequest("Invalid ticket Id format. Ticket Id should be a valid Guid.");
             }
 
-            var ticket = _ticketService.GetAvailableTicketByIdAsync(ticketGuid, eventGuid, token);
+            var @event = await _eventService.GetByIdAsync(eventGuid, token);
+            if (@event == null)
+            {
+                return NotFound($"Event with Id {eventId} not found.");
+            }
+
+            var ticket = await _ticketService.GetAvailableTicketByIdAsync(ticketGuid, eventGuid, token);
             if (ticket is null)
             {
-                return NotFound("Ticket is not found or unavavilable.");
+                return NotFound("Ticket is not found or unavailable.");
             }
 
             // This requires proper authentication implementation
             // Assumption here that only authenticated users can reserve/buy tickets.
-            // Can be also implemented with session Id or similar for guest users.
+            // Can be also implemented with session Id, user IP or similar for guest users.
             var userId = HttpContext.GetUserId();
 
             var result = await _ticketService.ReserveAsync(userId, ticketGuid, eventGuid, token);
@@ -101,7 +116,7 @@ namespace ConcertTicketManagement.Controllers
         {
             // This requires proper authentication implementation
             // Assumption here that only authenticated users can reserve/buy tickets.
-            // Can be also implemented with session Id or similar for guest users.
+            // Can be also implemented with session Id, user IP or similar for guest users.
             var userId = HttpContext.GetUserId();
 
             await _ticketService.CancelReservationAsync(userId, token);
@@ -110,7 +125,7 @@ namespace ConcertTicketManagement.Controllers
         }
 
         /// <summary>
-        /// Purches tickets currently held in the shopping cart
+        /// Purchases tickets currently held in the shopping cart
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
@@ -119,16 +134,16 @@ namespace ConcertTicketManagement.Controllers
         {
             // This requires proper authentication implementation
             // Assumption here that only authenticated users can reserve/buy tickets.
-            // Can be also implemented with session Id or similar for guest users.
+            // Can be also implemented with session Id, user IP or similar for guest users.
             var userId = HttpContext.GetUserId();
 
-            var result = await _ticketService.PurchaseAsync(userId, paymentInfo, token);
-            if (!result)
+            var paymentResult = await _ticketService.PurchaseAsync(userId, paymentInfo, token);
+            if (!paymentResult.IsSuccessful)
             {
-                return StatusCode(500, "Unable to purchase tickets. Please check your payment information or available tickets and try again.");
+                return StatusCode(500, $"Unable to purchase tickets. {paymentResult.ErrorMessage}");
             }
 
-            return Ok();
+            return Ok(paymentResult);
         }
     }
 }

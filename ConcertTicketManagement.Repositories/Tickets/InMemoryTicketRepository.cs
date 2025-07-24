@@ -110,35 +110,40 @@ namespace ConcertTicketManagement.Repositories.Tickets
         }
 
         /// <inheritdoc/>
-        public Task BlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token)
+        public Task<List<string>> BlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token)
         {
-            Requires.NotNull(ticketIdList, nameof(ticketIdList));
+            Requires.NotNullOrEmpty(ticketIdList, nameof(ticketIdList));
+            
+            List<string> blockedTickets = new List<string>();
 
             if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
             {
-                return Task.CompletedTask;
+                return Task.FromResult(blockedTickets);
             }
-
+            
             foreach (var ticketId in ticketIdList)
             {
                 var ticket = tickets.FirstOrDefault(t => t.Id == ticketId);
                 if (ticket != null)
                 {
                     ticket.SetBlocked();
+                    blockedTickets.Add(ticketId.ToString());
                 }
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(blockedTickets);
         }
 
         /// <inheritdoc/>
-        public Task UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token)
+        public Task<List<string>> UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token)
         {
-            Requires.NotNull(ticketIdList, nameof(ticketIdList));
+            Requires.NotNullOrEmpty(ticketIdList, nameof(ticketIdList));
+
+            List<string> unBlockedTickets = new List<string>();
 
             if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
             {
-                return Task.CompletedTask;
+                return Task.FromResult(unBlockedTickets);
             }
 
             foreach (var ticketId in ticketIdList)
@@ -147,10 +152,11 @@ namespace ConcertTicketManagement.Repositories.Tickets
                 if (ticket != null)
                 {
                     ticket.SetUnBlocked();
+                    unBlockedTickets.Add(ticketId.ToString());
                 }
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(unBlockedTickets);
         }
 
         /// <inheritdoc/>

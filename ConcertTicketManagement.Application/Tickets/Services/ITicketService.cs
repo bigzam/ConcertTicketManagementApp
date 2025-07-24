@@ -1,4 +1,5 @@
 ﻿using ConcertTicketManagement.Contracts.Payments;
+using ConcertTicketManagement.Contracts.Payments.Responses;
 using ConcertTicketManagement.Contracts.Tickets.Models;
 
 namespace ConcertTicketManagement.Application.Tickets.Services
@@ -17,9 +18,9 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         /// Gets ticket by Id
         /// </summary>
         /// <param name="ticketId">Ticket Id</param>
-        /// <param name="token">Cancallation token</param>
-        /// <returns></returns>
-        Task<Ticket> GetAvailableTicketByIdAsync(Guid ticketId, Guid eventId, CancellationToken token);
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Ticket</returns>
+        Task<Ticket?> GetAvailableTicketByIdAsync(Guid ticketId, Guid eventId, CancellationToken token);
 
         /// <summary>
         /// Sets ticket Reserved status to true.
@@ -43,7 +44,7 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         /// <param name="userId"></param>
         /// <param name="paymentMethodInformation"></param>
         /// <param name="token"></param>
-        /// <returns></returns>
-        Task<bool> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token);
+        /// <returns>PaymentResponse</returns>
+        Task<PaymentResponse> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token);
     }
 }

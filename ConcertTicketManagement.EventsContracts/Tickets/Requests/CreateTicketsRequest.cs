@@ -4,7 +4,7 @@ namespace ConcertTicketManagement.Contracts.Tickets.Requests
 {
     public sealed record CreateTicketsRequest
     {
-        public SeatLocation SeatLocation { get; init; }
+        public required SeatLocation SeatLocation { get; init; }
 
         public decimal Price { get; init; }
 

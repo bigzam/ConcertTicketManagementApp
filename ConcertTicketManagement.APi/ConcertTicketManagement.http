@@ -111,7 +111,7 @@ Content-Type: application/json
       "seatNumber": 12
     },
     "price": 110,
-    "type": 0
+    "type": 1
   }
 ]
 

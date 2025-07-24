@@ -17,7 +17,7 @@ namespace ConcertTicketManagement.Repositories.Tickets
         /// </summary>
         /// <param name="tickets">Tickets to be created.</param>
         /// <param name="token">Cancellation token.</param>
-        /// <returns>True if event succesfuly create. False otherwise.</returns>
+        /// <returns>True if event successfully create. False otherwise.</returns>
         Task<bool> SetTicketsForEventAsync(IEnumerable<Ticket> tickets, CancellationToken token);
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace ConcertTicketManagement.Repositories.Tickets
         /// <param name="userId"></param>
 
         /// <param name="token"></param>
-        /// <returns>True if succesfull</returns>
+        /// <returns>True if successful</returns>
         Task<bool> CancelReservationAsync(Guid userId, CancellationToken token);
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace ConcertTicketManagement.Repositories.Tickets
         /// <param name="eventId"></param>
         /// <param name="ticketIdList"></param>
         /// <param name="token"></param>
-        /// <returns></returns>
-        Task BlockEventTicketsAsync(Guid eventID, IEnumerable<Guid> ticketIdList, CancellationToken token);
+        /// <returns>List of blocked ticket Ids</returns>
+        Task<List<string>> BlockEventTicketsAsync(Guid eventID, IEnumerable<Guid> ticketIdList, CancellationToken token);
 
         /// <summary>
         /// Unblocks tickets for the event and makes them available for purchase.
@@ -63,8 +63,8 @@ namespace ConcertTicketManagement.Repositories.Tickets
         /// <param name="eventId"></param>
         /// <param name="ticketIdList"></param>
         /// <param name="token"></param>
-        /// <returns></returns>
-        Task UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token);
+        /// <returns>List of unblocked ticket Ids</returns>
+        Task<List<string>> UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token);
 
         /// <summary>
         /// Gets tickets from the shopping cart for the user.

@@ -80,15 +80,15 @@ namespace ConcertTicketManagement.Application.Events.Services
         }
 
         /// <inheritdoc/>
-        public async Task BlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token)
+        public async Task<List<string>> BlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token)
         {
-            await _ticketRepository.BlockEventTicketsAsync(eventGuid, ticketIdList, token);
+            return await _ticketRepository.BlockEventTicketsAsync(eventGuid, ticketIdList, token);
         }
 
         /// <inheritdoc/>
-        public async Task UnBlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token)
+        public async Task<List<string>> UnBlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token)
         {
-            await _ticketRepository.UnBlockEventTicketsAsync(eventGuid, ticketIdList, token);
+            return await _ticketRepository.UnBlockEventTicketsAsync(eventGuid, ticketIdList, token);
         }
     }
 }

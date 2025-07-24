@@ -25,21 +25,21 @@ namespace ConcertTicketManagement.Application.Events.Services
         /// Creates Event.
         /// </summary>
         /// <param name="event">Event.</param>
-        /// <returns>True if event created succesfully. False otherwise.</returns>
+        /// <returns>True if event created successfully. False otherwise.</returns>
         Task<bool> CreateAsync(Event @event, CancellationToken token);
 
         /// <summary>
         /// Updates Event.
         /// </summary>
         /// <param name="event">Event to update.</param>
-        /// <returns>Event object if event updated succesfully. Null if event is not found.</returns>
+        /// <returns>Event object if event updated successfully. Null if event is not found.</returns>
         Task<Event?> UpdateAsync(Event @event, CancellationToken token);
 
         /// <summary>
         /// Sets Event tickets.
         /// </summary>
         /// <param name="tickets">Collection of tickets.</param>
-        /// <returns>True if tickets created updated succesfully.</returns>
+        /// <returns>True if tickets created successfully.</returns>
         Task<bool> SetTicketsAsync(IEnumerable<CreateTicketsRequest> ticketsRequest, Guid eventId, CancellationToken token);
 
         /// <summary>
@@ -48,8 +48,8 @@ namespace ConcertTicketManagement.Application.Events.Services
         /// <param name="eventGuid"></param>
         /// <param name="ticketIdList"></param>
         /// <param name="token"></param>
-        /// <returns></returns>
-        Task BlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token);
+        /// <returns>List of unblocked ticket Ids</returns>
+        Task<List<string>> BlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token);
 
         /// <summary>
         /// Unblock tickets for the event and make them available for purchase.
@@ -57,7 +57,7 @@ namespace ConcertTicketManagement.Application.Events.Services
         /// <param name="eventGuid"></param>
         /// <param name="ticketIdList"></param>
         /// <param name="token"></param>
-        /// <returns></returns>
-        Task UnBlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token);
+        /// <returns>List of unblocked ticket Ids</returns>
+        Task<List<string>> UnBlockEventTicketsAsync(Guid eventGuid, IEnumerable<Guid> ticketIdList, CancellationToken token);
     }
 }
