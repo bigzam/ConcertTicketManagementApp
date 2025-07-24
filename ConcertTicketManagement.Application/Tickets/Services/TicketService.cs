@@ -1,4 +1,5 @@
 ﻿
+using System.Net.Sockets;
 using ConcertTicketManagement.Application.Payment;
 using ConcertTicketManagement.Contracts.Payments;
 using ConcertTicketManagement.Contracts.Tickets.Models;
@@ -30,20 +31,39 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> Purchase(IEnumerable<Ticket> tickets, PaymentMethod paymentMethod, CancellationToken token)
+        public async Task<bool> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token)
         {
+            var tickets = await _ticketRepository.GetTicketsFromShoppingCart(userId, token);
+            if(tickets == null || !tickets.Any())
+            {
+                return false;
+            }
             // This whole block should be transactional.
             // All tickets should be marked as Sold or none if payment processed succesfully.
             // If ticket.MarkAsSold() fails for any ticket, payment should be rolled back.
+            var toatlPrice = tickets.Sum(t => t.Price);
+            var paymentId = await _paymentProcessingService.ProcessPayment(toatlPrice, paymentMethodInformation);
+            var soldTickets = new List<Ticket>();
+
             foreach (var ticket in tickets)
             {
-                if (await _paymentProcessingService.ProcessPayment(ticket.Price, paymentMethod))
+                try
                 {
-                    ticket.MarkAsSold();
+                    ticket.SetSold();
+                    soldTickets.Add(ticket);
+
+                    await _ticketRepository.CancelReservationAsync(userId, token);
                 }
-                else
+                catch (InvalidOperationException)
                 {
-                    return false;
+                    // If ticket is already sold, it should be removed from the shopping cart.
+                    await _paymentProcessingService.RevertPayment(paymentId);
+
+                    // Revert tickets sale
+                    foreach (var soldTicket in soldTickets)
+                    {
+                        soldTicket.RevertSold();
+                    }
                 }
             }
 

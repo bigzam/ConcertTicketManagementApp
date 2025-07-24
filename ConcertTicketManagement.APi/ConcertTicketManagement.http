@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 ###
-
+# get tickets for event
 GET {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}
 Accept: application/json
 
@@ -128,12 +128,48 @@ GET {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/{{createevent.respons
 ###
 
 # Reserve a ticket
-POST {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/{{geteventtickets.response.body.$.items[0].id}}/events/{{createevent.response.body.$.id}}
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/{{geteventtickets.response.body.$.items[0].id}}/events/{{createevent.response.body.$.id}}/reservation
 
 ###
 
 
 # Cancel ticket reservation
-DELETE {{ConcertTicketManagement_HostAddress}}/api/v1/tickets
+DELETE {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/reservation
+
+###
+
+###
+# @name blocktickets
+PATCH {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}/blocktickets
+Content-Type: application/json 
+
+[
+  "{{geteventtickets.response.body.$.items[0].id}}",
+  "{{geteventtickets.response.body.$.items[1].id}}"
+]
+
+###
+# @name unblocktickets
+PATCH {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}/unblocktickets
+Content-Type: application/json 
+
+[
+  "{{geteventtickets.response.body.$.items[0].id}}",
+  "{{geteventtickets.response.body.$.items[1].id}}"
+]
+
+###
+
+# @name purchasetickets
+POST {{ConcertTicketManagement_HostAddress}}/api/v1/tickets/purchase
+Content-Type: application/json 
+
+{
+  "cardNumber": "1234-1234",
+  "cardHolderName": "John Doe",
+  "expirationDate": "07/2025",
+  "cvv": "123",
+  "billingAddress": "12 Main St"
+}
 
 ###

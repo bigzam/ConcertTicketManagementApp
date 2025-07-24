@@ -31,18 +31,19 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         Task<bool> ReserveAsync(Guid userId, Guid ticketId, Guid eventId, CancellationToken token);
 
         /// <summary>
-        /// Purchases tickets.
-        /// </summary>
-        /// <param name="tickets"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        Task<bool> Purchase(IEnumerable<Ticket> tickets, PaymentMethod paymentMethod, CancellationToken token);
-
-        /// <summary>
         /// Cancels ticket Reserved status.
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="token"></param>
         Task CancelReservationAsync(Guid userId, CancellationToken token);
+
+        /// <summary>
+        /// Purchases tickets for the user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="paymentMethodInformation"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task<bool> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token);
     }
 }

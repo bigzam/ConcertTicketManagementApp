@@ -10,6 +10,13 @@ namespace ConcertTicketManagement.Application.Payment
         /// <param name="paymentAmount">Payment amount</param>
         /// <param name="paymentMethod">Payment Method</param>
         /// <returns></returns>
-        Task<bool> ProcessPayment(decimal paymentAmount, PaymentMethod paymentMethod);
+        Task<string> ProcessPayment(decimal paymentAmount, PaymentMethodInformation paymentMethod);
+
+        /// <summary>
+        /// Reverts payment is case of failure or cancellation.
+        /// </summary>
+        /// <param name="paymentId"></param>
+        /// <returns></returns>
+        Task<bool> RevertPayment(string paymentId);
     }
 }

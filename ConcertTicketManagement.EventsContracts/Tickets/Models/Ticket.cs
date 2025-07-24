@@ -15,7 +15,7 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
 
         public TicketType Type { get; init; }
 
-        public bool IsAvailable { get; private set; } = true;
+        public bool IsSold { get; private set; } = false;
 
         public bool IsReserved { get; private set; } = false;
 
@@ -43,35 +43,35 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
         }
 
         /// <summary>
-        /// Marks the ticket as sold, making it unavailable for further purchase.
+        /// Sets ticket status as sold, making it unavailable for further purchase.
         /// </summary>
         /// <remarks>This method ensures thread safety by locking access to the ticket's state.  If the
         /// ticket is already sold, an exception is thrown.</remarks>
         /// <exception cref="InvalidOperationException">Thrown if the ticket is already sold.</exception>
-        public void MarkAsSold()
+        public void SetSold()
         {
             lock (_ticketsLock)
             {
-                if (!IsAvailable)
+                if (IsSold)
                 {
                     throw new InvalidOperationException("Ticket is already sold.");
                 }
 
-                IsAvailable = false;
+                IsSold = true;
             }
         }
 
         /// <summary>
-        /// Marks the ticket as reserved, preventing it from being sold or reserved again.
+        /// Sets ticket status as reserved, preventing it from being sold or reserved again.
         /// </summary>
-        /// <remarks>This method sets the ticket's reservation status and expiration time.  It ensures
-        /// that a ticket cannot be reserved if it is already sold or reserved.</remarks>
+        /// <remarks>This method sets the ticket's reservation status. It ensures
+        /// that the ticket cannot be reserved if it is already sold or reserved.</remarks>
         /// <exception cref="InvalidOperationException">Thrown if the ticket is already sold or if the ticket is already reserved.</exception>
-        public void MarkAsReserved()
+        public void SetReserved()
         {
             lock (_ticketsLock)
             {
-                if (!IsAvailable)
+                if (IsSold)
                 {
                     throw new InvalidOperationException("Ticket is already sold.");
                 }
@@ -93,6 +93,36 @@ namespace ConcertTicketManagement.Contracts.Tickets.Models
             lock (_ticketsLock)
             {
                 IsReserved = false;
+            }
+        }
+
+        /// <summary>
+        /// Sets ticket status as Blocked.
+        /// </summary>
+        public void SetBlocked()
+        {
+            lock (_ticketsLock)
+            {
+                IsBlocked = true;
+            }
+        }
+
+        /// <summary>
+        /// Sets ticket status as UnBlocked.
+        /// </summary>
+        public void SetUnBlocked()
+        {
+            lock (_ticketsLock)
+            {
+                IsBlocked = false;
+            }
+        }
+
+        public void RevertSold()
+        {
+            lock (_ticketsLock)
+            {
+                IsSold = false;
             }
         }
     }

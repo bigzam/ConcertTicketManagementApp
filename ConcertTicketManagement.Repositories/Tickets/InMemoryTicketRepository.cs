@@ -1,4 +1,5 @@
-﻿using ConcertTicketManagement.Contracts.Events.Models;
+﻿using System.Collections.Generic;
+using ConcertTicketManagement.Contracts.Events.Models;
 using ConcertTicketManagement.Contracts.Tickets.Models;
 using Validation;
 
@@ -21,7 +22,7 @@ namespace ConcertTicketManagement.Repositories.Tickets
             else
             {
                 return Task.FromResult(
-                    tickets.Where(t => t.IsAvailable && !t.IsReserved && !t.IsBlocked && t.Id == ticketId).FirstOrDefault());
+                    tickets.Where(t => !t.IsSold && !t.IsReserved && !t.IsBlocked && t.Id == ticketId).FirstOrDefault());
             }
         }
 
@@ -34,7 +35,7 @@ namespace ConcertTicketManagement.Repositories.Tickets
             }
 
             return Task.FromResult(
-                tickets.Where(t => t.IsAvailable && !t.IsReserved && !t.IsBlocked));
+                tickets.Where(t => !t.IsSold && !t.IsReserved && !t.IsBlocked));
         }
         /// <inheritdoc/>
         public Task<bool> ReserveAsync(Guid userId, Guid ticketId, Guid eventId, CancellationToken token)
@@ -108,6 +109,63 @@ namespace ConcertTicketManagement.Repositories.Tickets
             return Task.FromResult(true);
         }
 
+        /// <inheritdoc/>
+        public Task BlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token)
+        {
+            Requires.NotNull(ticketIdList, nameof(ticketIdList));
+
+            if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
+            {
+                return Task.CompletedTask;
+            }
+
+            foreach (var ticketId in ticketIdList)
+            {
+                var ticket = tickets.FirstOrDefault(t => t.Id == ticketId);
+                if (ticket != null)
+                {
+                    ticket.SetBlocked();
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token)
+        {
+            Requires.NotNull(ticketIdList, nameof(ticketIdList));
+
+            if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
+            {
+                return Task.CompletedTask;
+            }
+
+            foreach (var ticketId in ticketIdList)
+            {
+                var ticket = tickets.FirstOrDefault(t => t.Id == ticketId);
+                if (ticket != null)
+                {
+                    ticket.SetUnBlocked();
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task<IEnumerable<Ticket>> GetTicketsFromShoppingCart(Guid userId, CancellationToken token)
+        {
+            if (_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
+            {
+                return Task.FromResult(tickets.AsEnumerable());
+            }
+            else
+            {
+                return Task.FromResult(Enumerable.Empty<Ticket>());
+            }
+        }
+
         private void ReleaseTickets(Guid userId)
         {
             if(_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
@@ -116,6 +174,7 @@ namespace ConcertTicketManagement.Repositories.Tickets
                 {
                     ticket.ReleaseReservation();
                 }
+                _shoppingCart.Clear();
             }
         }
 
@@ -129,7 +188,7 @@ namespace ConcertTicketManagement.Repositories.Tickets
             var ticket = tickets.FirstOrDefault(t => t.Id == ticketId);
             if (ticket != null)
             {
-                ticket.MarkAsReserved();
+                ticket.SetReserved();
             }
 
             return ticket;

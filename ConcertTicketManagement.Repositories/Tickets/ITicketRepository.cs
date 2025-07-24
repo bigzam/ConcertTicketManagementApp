@@ -47,5 +47,31 @@ namespace ConcertTicketManagement.Repositories.Tickets
         /// <param name="token"></param>
         /// <returns>True if succesfull</returns>
         Task<bool> CancelReservationAsync(Guid userId, CancellationToken token);
+
+        /// <summary>
+        /// Blocks event tickets to manage capacity, staged release, scene installation etc.
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <param name="ticketIdList"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task BlockEventTicketsAsync(Guid eventID, IEnumerable<Guid> ticketIdList, CancellationToken token);
+
+        /// <summary>
+        /// Unblocks tickets for the event and makes them available for purchase.
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <param name="ticketIdList"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token);
+
+        /// <summary>
+        /// Gets tickets from the shopping cart for the user.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task<IEnumerable<Ticket>> GetTicketsFromShoppingCart(Guid userId, CancellationToken token);
     }
 }
