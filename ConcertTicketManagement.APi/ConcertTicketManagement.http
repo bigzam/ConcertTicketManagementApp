@@ -4,11 +4,6 @@ GET {{ConcertTicketManagement_HostAddress}}/api/v1/events
 Accept: application/json
 
 ###
-
-GET {{ConcertTicketManagement_HostAddress}}/api/v1/events/78e1437f-288e-48a2-abed-8398897d414b
-Accept: application/json
-
-###
 # @name createevent
 POST {{ConcertTicketManagement_HostAddress}}/api/v1/events
 Content-Type: application/json 
@@ -21,12 +16,12 @@ Content-Type: application/json
 }
 
 ###
-# get tickets for event
+# get events
 GET {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}
 Accept: application/json
 
 ###
-
+# update event
 PUT {{ConcertTicketManagement_HostAddress}}/api/v1/events/{{createevent.response.body.$.id}}
 Content-Type: application/json 
 
