@@ -24,4 +24,9 @@
 • Cancel reservations</br>
 • View ticket availability</br>
 
-![Swagger UI](image.png)
+## How to test
+
+Run ConcertTicketManagement.Api project and use Swagger UI</br>
+Use provided ConcertTicketManagement.http file </br>
+
+![Swagger UI](image-1.png)
