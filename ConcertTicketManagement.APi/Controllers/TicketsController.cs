@@ -20,6 +20,9 @@ namespace ConcertTicketManagement.Controllers
 
         private readonly IMemoryCache _cache;
 
+        // TODO: move to appsettings
+        private readonly double ShoppingCartHoldInSeconds = 30;
+
         public TicketsController(ITicketService ticketService, IEventService eventService, IMemoryCache cache)
         {
             _ticketService = ticketService;
@@ -105,7 +108,7 @@ namespace ConcertTicketManagement.Controllers
             {
                 var cacheItems = _cache.GetOrCreate(userId, entry => new List<Ticket>());
                 cacheItems!.Add(ticket);
-                _cache.Set(userId, cacheItems, TimeSpan.FromSeconds(30));
+                _cache.Set(userId, cacheItems, TimeSpan.FromSeconds(ShoppingCartHoldInSeconds));
 
                 return Ok();
             }
