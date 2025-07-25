@@ -41,6 +41,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//Simple memory cache to use as a Shopping Cart
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<IPaymentProcessingService, PaymentProcessingService>();
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddSingleton<ITicketRepository, InMemoryTicketRepository>();

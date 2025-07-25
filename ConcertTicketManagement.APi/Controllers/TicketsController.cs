@@ -3,7 +3,10 @@ using ConcertTicketManagement.Api.Mappings.Tickets;
 using ConcertTicketManagement.Application.Events.Services;
 using ConcertTicketManagement.Application.Tickets.Services;
 using ConcertTicketManagement.Contracts.Payments;
+using ConcertTicketManagement.Contracts.Tickets.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ConcertTicketManagement.Controllers
 {
@@ -12,12 +15,16 @@ namespace ConcertTicketManagement.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly ITicketService _ticketService;
+
         private readonly IEventService _eventService;
 
-        public TicketsController(ITicketService ticketService, IEventService eventService)
+        private readonly IMemoryCache _cache;
+
+        public TicketsController(ITicketService ticketService, IEventService eventService, IMemoryCache cache)
         {
             _ticketService = ticketService;
             _eventService = eventService;
+            _cache = cache;
         }
 
         /// <summary>
@@ -96,6 +103,10 @@ namespace ConcertTicketManagement.Controllers
             var result = await _ticketService.ReserveAsync(userId, ticketGuid, eventGuid, token);
             if (result)
             {
+                var cacheItems = _cache.GetOrCreate(userId, entry => new List<Ticket>());
+                cacheItems!.Add(ticket);
+                _cache.Set(userId, cacheItems, TimeSpan.FromSeconds(30));
+
                 return Ok();
             }
             else
@@ -118,8 +129,14 @@ namespace ConcertTicketManagement.Controllers
             // Assumption here that only authenticated users can reserve/buy tickets.
             // Can be also implemented with session Id, user IP or similar for guest users.
             var userId = HttpContext.GetUserId();
+            var tickets = _cache.GetOrCreate(userId, entry => new List<Ticket>());
+            
+            if(tickets is not null && tickets.Count != 0)
+            {
+                await _ticketService.CancelReservationAsync(tickets, token);
+                _cache.Remove(userId);
+            }
 
-            await _ticketService.CancelReservationAsync(userId, token);
 
             return Ok();
         }
@@ -137,11 +154,20 @@ namespace ConcertTicketManagement.Controllers
             // Can be also implemented with session Id, user IP or similar for guest users.
             var userId = HttpContext.GetUserId();
 
-            var paymentResult = await _ticketService.PurchaseAsync(userId, paymentInfo, token);
+            var shopingCartTickets = _cache.GetOrCreate(userId, entry => new List<Ticket>());
+            if(shopingCartTickets is null || shopingCartTickets.Count == 0)
+            {
+                return NotFound("The shopping cart is empty");
+            }
+
+            var paymentResult = await _ticketService.PurchaseAsync(userId, shopingCartTickets, paymentInfo, token);
+           
             if (!paymentResult.IsSuccessful)
             {
                 return StatusCode(500, $"Unable to purchase tickets. {paymentResult.ErrorMessage}");
             }
+
+            _cache.Remove(userId);
 
             return Ok(paymentResult);
         }

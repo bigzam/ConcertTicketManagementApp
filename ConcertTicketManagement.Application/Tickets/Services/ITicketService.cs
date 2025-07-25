@@ -1,4 +1,5 @@
-﻿using ConcertTicketManagement.Contracts.Payments;
+﻿using System.Collections.Generic;
+using ConcertTicketManagement.Contracts.Payments;
 using ConcertTicketManagement.Contracts.Payments.Responses;
 using ConcertTicketManagement.Contracts.Tickets.Models;
 
@@ -32,19 +33,21 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         Task<bool> ReserveAsync(Guid userId, Guid ticketId, Guid eventId, CancellationToken token);
 
         /// <summary>
-        /// Cancels ticket Reserved status.
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="token"></param>
-        Task CancelReservationAsync(Guid userId, CancellationToken token);
-
-        /// <summary>
         /// Purchases tickets for the user.
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="tickets">Tickets to purchase</param>
         /// <param name="paymentMethodInformation"></param>
         /// <param name="token"></param>
         /// <returns>PaymentResponse</returns>
-        Task<PaymentResponse> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token);
+        Task<PaymentResponse> PurchaseAsync(Guid userId, IEnumerable<Ticket> tickets, PaymentMethodInformation paymentMethodInformation, CancellationToken token);
+
+        /// <summary>
+        /// Cancels reservation for the tickets.
+        /// </summary>
+        /// <param name="tickets"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task CancelReservationAsync(IEnumerable<Ticket> tickets, CancellationToken token);
     }
 }

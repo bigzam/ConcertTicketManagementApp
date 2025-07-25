@@ -9,8 +9,6 @@ namespace ConcertTicketManagement.Repositories.Tickets
     {
         private readonly Dictionary<Guid, List<Ticket>> _tickets = new();
 
-        private readonly Dictionary<Guid, List<Ticket>> _shoppingCart = new();
-
         /// <inheritdoc/>
         public Task<Ticket?> GetAvailableTicketByIdAsync(Guid ticketId, Guid eventId, CancellationToken token)
         {
@@ -48,15 +46,6 @@ namespace ConcertTicketManagement.Repositories.Tickets
                 {
                     return Task.FromResult(false);
                 }
-
-                if (!_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
-                {
-                    _shoppingCart.Add(userId, new List<Ticket> { ticket });
-                }
-                else
-                {
-                    _shoppingCart[userId].Add(ticket);
-                }
             }
             catch(InvalidOperationException)
             {
@@ -87,22 +76,6 @@ namespace ConcertTicketManagement.Repositories.Tickets
             catch (ArgumentException)
             {
                 // Log exception
-                return Task.FromResult(false);
-            }
-
-            return Task.FromResult(true);
-        }
-
-        /// <inheritdoc/>
-        public Task<bool> CancelReservationAsync(Guid userId, CancellationToken token)
-        {
-            try
-            {
-                this.ReleaseTickets(userId);
-            }
-            catch (InvalidOperationException)
-            {
-                // log exception - ticket is already reserved.
                 return Task.FromResult(false);
             }
 
@@ -159,31 +132,6 @@ namespace ConcertTicketManagement.Repositories.Tickets
             return Task.FromResult(unBlockedTickets);
         }
 
-        /// <inheritdoc/>
-        public Task<IEnumerable<Ticket>> GetTicketsFromShoppingCart(Guid userId, CancellationToken token)
-        {
-            if (_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
-            {
-                return Task.FromResult(tickets.AsEnumerable());
-            }
-            else
-            {
-                return Task.FromResult(Enumerable.Empty<Ticket>());
-            }
-        }
-
-        private void ReleaseTickets(Guid userId)
-        {
-            if(_shoppingCart.TryGetValue(userId, out List<Ticket>? tickets))
-            {                 
-                foreach (var ticket in tickets)
-                {
-                    ticket.ReleaseReservation();
-                }
-                _shoppingCart.Clear();
-            }
-        }
-
         private Ticket? SetTicketReservedStatus(Guid ticketId, Guid eventId)
         {
             if (!_tickets.TryGetValue(eventId, out List<Ticket>? tickets))
@@ -198,6 +146,25 @@ namespace ConcertTicketManagement.Repositories.Tickets
             }
 
             return ticket;
+        }
+
+        /// <inheritdoc/>
+        public Task<bool> CancelReservationAsync(IEnumerable<Ticket> tickets, CancellationToken token)
+        {
+            try
+            {
+                foreach (var ticket in tickets)
+                {
+                    ticket.ReleaseReservation();
+                }
+            }
+            catch (Exception)
+            {
+                // Log exception
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
         }
     }
 }

@@ -84,7 +84,7 @@ namespace ConcertTicketManagement.Tests
             );
         }
 
-        public static PaymentResponse GetSuccessfullPaymentResponse()
+        public static PaymentResponse GetSuccessfulPaymentResponse()
         {
             return new PaymentResponse
             {

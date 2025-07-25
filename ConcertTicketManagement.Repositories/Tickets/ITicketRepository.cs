@@ -40,15 +40,6 @@ namespace ConcertTicketManagement.Repositories.Tickets
         Task<bool> ReserveAsync(Guid userId, Guid ticketId, Guid eventId, CancellationToken token);
 
         /// <summary>
-        /// Cancels reservation by setting IsReserved status to false and removing it from the shopping cart.
-        /// </summary>
-        /// <param name="userId"></param>
-
-        /// <param name="token"></param>
-        /// <returns>True if successful</returns>
-        Task<bool> CancelReservationAsync(Guid userId, CancellationToken token);
-
-        /// <summary>
         /// Blocks event tickets to manage capacity, staged release, scene installation etc.
         /// </summary>
         /// <param name="eventId"></param>
@@ -67,11 +58,11 @@ namespace ConcertTicketManagement.Repositories.Tickets
         Task<List<string>> UnBlockEventTicketsAsync(Guid eventId, IEnumerable<Guid> ticketIdList, CancellationToken token);
 
         /// <summary>
-        /// Gets tickets from the shopping cart for the user.
+        /// Cancels reservation for the tickets.
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name="tickets"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        Task<IEnumerable<Ticket>> GetTicketsFromShoppingCart(Guid userId, CancellationToken token);
+        Task<bool> CancelReservationAsync(IEnumerable<Ticket> tickets, CancellationToken token);
     }
 }

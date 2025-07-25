@@ -30,9 +30,12 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         }
 
         /// <inheritdoc/>
-        public async Task<PaymentResponse> PurchaseAsync(Guid userId, PaymentMethodInformation paymentMethodInformation, CancellationToken token)
-        {
-            var tickets = await _ticketRepository.GetTicketsFromShoppingCart(userId, token);
+        public async Task<PaymentResponse> PurchaseAsync(
+            Guid userId, 
+            IEnumerable<Ticket> tickets,
+            PaymentMethodInformation paymentMethodInformation, 
+            CancellationToken token)
+        { 
             if (tickets == null || !tickets.Any())
             {
                 return new PaymentResponse { ErrorMessage = "Shopping card is empty!" };
@@ -51,8 +54,6 @@ namespace ConcertTicketManagement.Application.Tickets.Services
                 {
                     ticket.SetSold();
                     soldTickets.Add(ticket);
-
-                    await _ticketRepository.CancelReservationAsync(userId, token);
                 }
                 catch (InvalidOperationException ex)
                 {
@@ -83,9 +84,9 @@ namespace ConcertTicketManagement.Application.Tickets.Services
         }
 
         /// <inheritdoc/>
-        public async Task CancelReservationAsync(Guid userId, CancellationToken token)
+        public async Task CancelReservationAsync(IEnumerable<Ticket> tickets, CancellationToken token)
         {
-            await _ticketRepository.CancelReservationAsync(userId, token);
+            await _ticketRepository.CancelReservationAsync(tickets, token);
         }
     }
 }

@@ -8,7 +8,7 @@ using ConcertTicketManagement.Contracts.Tickets.Responses;
 using ConcertTicketManagement.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;
 
@@ -18,6 +18,7 @@ namespace ConcertTicketManagement.Tests
     {
         private readonly Mock<ITicketService> _ticketServiceMock;
         private readonly Mock<IEventService> _eventServiceMock;
+        private readonly Mock<IMemoryCache> _cacheMock;
 
         private Mock<HttpContext> _mockHttpContext = new Mock<HttpContext>();
         private readonly TicketsController _controller;
@@ -28,7 +29,12 @@ namespace ConcertTicketManagement.Tests
         {
             _ticketServiceMock = new Mock<ITicketService>();
             _eventServiceMock = new Mock<IEventService>();
-            _controller = new TicketsController(_ticketServiceMock.Object, _eventServiceMock.Object);
+            _cacheMock = new Mock<IMemoryCache>();
+            _controller = new TicketsController(
+                _ticketServiceMock.Object,
+                _eventServiceMock.Object,
+                _cacheMock.Object);
+
             _mockHttpContext = new Mock<HttpContext>();
 
             var mockClaimsPrincipal = new Mock<ClaimsPrincipal>();
@@ -111,6 +117,7 @@ namespace ConcertTicketManagement.Tests
                  new TimeOnly(19, 0));
 
             var ticket = TestData.GetTicket(@event.Id);
+            this.SetupCahceMock(ticket);
 
             this._eventServiceMock.Setup(
                 x => x.GetByIdAsync(@event.Id, It.IsAny<CancellationToken>())).ReturnsAsync(@event);
@@ -151,13 +158,21 @@ namespace ConcertTicketManagement.Tests
         }
 
         [Fact]
-        public async Task PurchaseTicket_ShouldSucceed_WhenEventAndTicketExist()
+        public async Task PurchaseTickets_ShouldSucceed_WhenEventAndTicketExist()
         {
             var paymentMethodInformation = TestData.GetPaymentMethodInformation();
-            var paymentResponse = TestData.GetSuccessfullPaymentResponse();
+            var paymentResponse = TestData.GetSuccessfulPaymentResponse();
+            var tickets = new List<Ticket>() { TestData.GetTicket(Guid.NewGuid()) };
+
+            this.SetupCahceMock(tickets.First());
 
             this._ticketServiceMock.Setup(
-                x => x.PurchaseAsync(It.IsAny<Guid>(), paymentMethodInformation, It.IsAny<CancellationToken>())).ReturnsAsync(paymentResponse);
+                x => x.PurchaseAsync(
+                    It.IsAny<Guid>(),
+                    tickets,
+                    paymentMethodInformation,
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(paymentResponse);
 
             var response =
                 await this._controller.Purchase(paymentMethodInformation, default);
@@ -168,7 +183,12 @@ namespace ConcertTicketManagement.Tests
             Assert.True(actualResponse.IsSuccessful);
 
             this._ticketServiceMock.Verify(
-                x => x.PurchaseAsync(It.IsAny<Guid>(), paymentMethodInformation, It.IsAny<CancellationToken>()), Times.Once);
+                x => x.PurchaseAsync(
+                    It.IsAny<Guid>(),
+                    tickets,
+                    paymentMethodInformation,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         [Fact]
@@ -176,9 +196,15 @@ namespace ConcertTicketManagement.Tests
         {
             var paymentMethodInformation = TestData.GetPaymentMethodInformation();
             var paymentResponse = TestData.GetFailedPaymentResponse();
+            var tickets = new List<Ticket>() { TestData.GetTicket(Guid.NewGuid()) };
 
+            this.SetupCahceMock(tickets.First());
             this._ticketServiceMock.Setup(
-                x => x.PurchaseAsync(It.IsAny<Guid>(), paymentMethodInformation, It.IsAny<CancellationToken>())).ReturnsAsync(paymentResponse);
+                x => x.PurchaseAsync(
+                    It.IsAny<Guid>(),
+                    tickets,
+                    paymentMethodInformation, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(paymentResponse);
 
             var response =
                 await this._controller.Purchase(paymentMethodInformation, default);
@@ -189,10 +215,36 @@ namespace ConcertTicketManagement.Tests
             Assert.True(actualResponse.Contains("Payment failed", StringComparison.InvariantCultureIgnoreCase));
 
             this._ticketServiceMock.Verify(
-                x => x.PurchaseAsync(It.IsAny<Guid>(), paymentMethodInformation, It.IsAny<CancellationToken>()), Times.Once);
+                x => x.PurchaseAsync(
+                    It.IsAny<Guid>(),
+                    tickets,
+                    paymentMethodInformation,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
+        private void SetupCahceMock(Ticket ticket)
+        {
+            ICacheEntry? capturedEntry = null;
+            object? capturedValue = null;
 
+            object? cachedValue = new List<Ticket> { ticket };
+
+            this._cacheMock
+                .Setup(m => m.TryGetValue(It.IsAny<object>(), out cachedValue))
+                .Returns(true);
+            this._cacheMock
+                .Setup(m => m.CreateEntry(It.IsAny<object>()))
+                .Returns((object key) =>
+                {
+                    var entry = new Mock<ICacheEntry>();
+                    entry.SetupSet(e => e.Value = It.IsAny<object>())
+                         .Callback<object>(val => capturedValue = val);
+                    entry.SetupGet(e => e.Key).Returns(key);
+                    capturedEntry = entry.Object;
+                    return capturedEntry;
+                });
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (!this.disposedValue)
