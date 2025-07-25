@@ -4,7 +4,6 @@ using ConcertTicketManagement.Application.Events.Services;
 using ConcertTicketManagement.Application.Tickets.Services;
 using ConcertTicketManagement.Contracts.Payments;
 using ConcertTicketManagement.Contracts.Tickets.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -21,7 +20,7 @@ namespace ConcertTicketManagement.Controllers
         private readonly IMemoryCache _cache;
 
         // TODO: move to appsettings
-        private readonly double ShoppingCartHoldInSeconds = 30;
+        private readonly double ShoppingCartHoldInSeconds = 300;
 
         public TicketsController(ITicketService ticketService, IEventService eventService, IMemoryCache cache)
         {
